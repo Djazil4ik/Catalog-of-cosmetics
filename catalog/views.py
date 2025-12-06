@@ -52,3 +52,10 @@ class ProductDetailView(DetailView):
         # Явное получение объекта через slug — более явное поведение и легче тестировать
         slug = self.kwargs.get(self.slug_url_kwarg)
         return get_object_or_404(Product.objects.select_related('category'), slug=slug)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()
+        context['current_category'] = self.request.GET.get(
+            'category') or self.kwargs.get('category_slug')
+        return context

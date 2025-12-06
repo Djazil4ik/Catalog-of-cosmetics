@@ -1,3 +1,110 @@
 from django.contrib import admin
+from django.utils.html import format_html
 
-# Register your models here.
+from .models import Advantage, Category, ImageGallery, Product
+
+
+class ImageGalleryInline(admin.TabularInline):
+    """Inline редактор для изображений галереи товара."""
+    model = ImageGallery
+    extra = 1
+    fields = ('image', 'image_tag')
+    readonly_fields = ('image_tag',)
+
+    def image_tag(self, obj):
+        if not obj.image:
+            return '-'
+        try:
+            url = obj.image.url
+        except Exception:
+            return '-'
+        return format_html('<img src="{}" style="max-height:80px;" />', url)
+
+    image_tag.short_description = 'Предпросмотр'
+
+
+class AdvantageInline(admin.TabularInline):
+    """Inline редактор для преимуществ товара."""
+    model = Advantage
+    extra = 1
+    fields = ('description',)
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'product_count',)
+    search_fields = ('name',)
+    prepopulated_fields = {'slug': ('name',)}
+    readonly_fields = ('product_count',)
+    ordering = ('name',)
+
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'slug', 'product_count')
+        }),
+    )
+
+    def image_tag(self, obj):
+        """Показывает предпросмотр изображения категории."""
+        if not obj.image:
+            return '-'
+        try:
+            url = obj.image.url
+        except Exception:
+            return '-'
+        return format_html('<img src="{}" style="max-height:100px;" />', url)
+
+    image_tag.short_description = 'Изображение'
+
+    def product_count(self, obj):
+        """Показывает количество товаров в категории."""
+        count = obj.products.count()
+        return f'{count} товаров'
+
+    product_count.short_description = 'Товаров в категории'
+
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ('name', 'category', 'price', 'slug',
+                    'image_tag', 'gallery_count')
+    list_filter = ('category', 'price')
+    search_fields = ('name', 'description')
+    prepopulated_fields = {'slug': ('name',)}
+    readonly_fields = ('image_tag', 'gallery_count')
+    ordering = ('category', 'name')
+    list_editable = ('price',)
+    inlines = (ImageGalleryInline, AdvantageInline)
+
+    fieldsets = (
+        ('Основная информация', {
+            'fields': ('name', 'slug', 'category', 'price', 'image', 'image_tag')
+        }),
+        ('Описание и состав', {
+            'fields': ('description',),
+            'classes': ('collapse',)
+        }),
+        ('Статистика', {
+            'fields': ('gallery_count',),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def image_tag(self, obj):
+        """Показывает предпросмотр основного изображения товара."""
+        if not obj.image:
+            return '-'
+        try:
+            url = obj.image.url
+        except Exception:
+            return '-'
+        return format_html('<img src="{}" style="max-height:80px;" />', url)
+
+    image_tag.short_description = 'Изображение'
+
+    def gallery_count(self, obj):
+        """Показывает количество изображений в галерее."""
+        count = obj.gallery_images.count()
+        return f'{count} фото'
+
+    gallery_count.short_description = 'Изображений в галерее'

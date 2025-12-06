@@ -1,0 +1,528 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="{{ product.name }} - {{ product.description|striptags|truncatechars:160 }}" />
+    <link rel="icon" href="{% static 'favicon/favicon.svg' %}" type="image/svg+xml" />
+    <link rel="alternate icon" href="{% static 'favicon/favicon.ico' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}" />
+
+    <title>{{ product.name }} - Каталог японской косметики</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      :root {
+        --bg-primary: #fff;
+        --bg-secondary: #f8f9fa;
+        --text-primary: #2c3e50;
+        --text-secondary: #7f8c8d;
+        --border-color: #ecf0f1;
+        --accent: #3498db;
+      }
+      
+      body.winter {
+        --bg-primary: #f0f4f8;
+        --bg-secondary: #e1e8ed;
+        --text-primary: #1a365d;
+        --accent: #4299e1;
+      }
+      
+      body.spring {
+        --bg-primary: #fff5f7;
+        --bg-secondary: #ffe4e8;
+        --text-primary: #702459;
+        --accent: #d53f8c;
+      }
+      
+      body.summer {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f9fafb;
+        --text-primary: #1f2937;
+        --accent: #10b981;
+      }
+      
+      body.autumn {
+        --bg-primary: #fef6ee;
+        --bg-secondary: #fed7aa;
+        --text-primary: #7c2d12;
+        --accent: #ea580c;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        line-height: 1.6;
+        color: var(--text-primary);
+        background: var(--bg-primary);
+        transition: all 0.4s ease;
+        position: relative;
+        overflow-x: hidden;
+      }
+      
+      .seasonal-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+      
+      .particle {
+        position: absolute;
+        opacity: 0.7;
+        animation: fall linear infinite;
+      }
+      
+      @keyframes fall {
+        to {
+          transform: translateY(100vh) rotate(360deg);
+        }
+      }
+      
+      header {
+        background: var(--bg-secondary);
+        padding: 1.5rem 1rem;
+        text-align: center;
+        border-bottom: 1px solid var(--border-color);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        transition: background 0.4s ease;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+        font-weight: 300;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+      }
+      
+      .season-selector {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+      }
+      
+      .season-btn {
+        padding: 0.5rem 1.2rem;
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        border-radius: 4px;
+      }
+      
+      .season-btn:hover,
+      .season-btn.active {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+      
+      .back-link {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        text-decoration: none;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s;
+        margin-bottom: 2rem;
+      }
+      
+      .back-link:hover {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+      
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        position: relative;
+        z-index: 1;
+      }
+      
+      .product-detail {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        background: var(--bg-secondary);
+        padding: 2rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+      }
+      
+      .product-gallery {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .main-image {
+        width: 100%;
+        height: 500px;
+        background: var(--bg-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      
+      .main-image img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+      }
+      
+      .thumbnail-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.5rem;
+      }
+      
+      .thumbnail {
+        width: 100%;
+        height: 100px;
+        background: var(--bg-primary);
+        border: 2px solid var(--border-color);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .thumbnail:hover,
+      .thumbnail.active {
+        border-color: var(--accent);
+        transform: scale(1.05);
+      }
+      
+      .thumbnail img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+      }
+      
+      .product-info h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+      }
+      
+      .product-category {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: var(--accent);
+        color: white;
+        font-size: 0.85rem;
+        border-radius: 4px;
+        margin-bottom: 1.5rem;
+      }
+      
+      .product-price {
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: var(--accent);
+        margin-bottom: 2rem;
+      }
+      
+      .product-description {
+        font-size: 1rem;
+        line-height: 1.8;
+        color: var(--text-primary);
+      }
+      
+      .product-description p {
+        margin-bottom: 1rem;
+      }
+      
+      .product-description-block {
+        background: var(--bg-secondary);
+        padding: 2rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-top: 2rem;
+      }
+      
+      .product-description-block h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+        border-bottom: 2px solid var(--accent);
+        padding-bottom: 0.5rem;
+      }
+      
+      .product-section {
+        margin-bottom: 2rem;
+      }
+      
+      .product-section h3 {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+        border-bottom: 2px solid var(--accent);
+        padding-bottom: 0.5rem;
+      }
+      
+      .advantages-list {
+        list-style: none;
+        padding: 0;
+      }
+      
+      .advantages-list li {
+        padding: 0.75rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+        border-bottom: 1px solid var(--border-color);
+      }
+      
+      .advantages-list li:before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+        font-weight: bold;
+      }
+      
+      .advantages-list li:last-child {
+        border-bottom: none;
+      }
+      
+      .compounds-text {
+        background: var(--bg-primary);
+        padding: 1rem;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+      
+      .buy-button {
+        display: inline-block;
+        padding: 1rem 3rem;
+        background: var(--accent);
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+      }
+      
+      .buy-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+      
+      footer {
+        background: var(--bg-secondary);
+        padding: 1rem;
+        text-align: center;
+        margin-top: 3rem;
+        border-top: 1px solid var(--border-color);
+        position: relative;
+        z-index: 1;
+      }
+      
+      footer p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+      
+      @media (max-width: 768px) {
+        .product-detail {
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+          padding: 1rem;
+        }
+        
+        .main-image {
+          height: 300px;
+        }
+        
+        .product-info h2 {
+          font-size: 1.5rem;
+        }
+        
+        .product-price {
+          font-size: 2rem;
+        }
+        
+        h1 {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="{{ request.GET.season|default:'spring' }}">
+    <div class="seasonal-bg" id="seasonalBg"></div>
+
+    <header>
+      <h1>{{ product.name }}</h1>
+      <div class="season-selector">
+        <button class="season-btn" onclick="changeSeason('winter')">Зима</button>
+        <button class="season-btn" onclick="changeSeason('spring')">Весна</button>
+        <button class="season-btn" onclick="changeSeason('summer')">Лето</button>
+        <button class="season-btn" onclick="changeSeason('autumn')">Осень</button>
+      </div>
+    </header>
+
+    <main>
+      <a href="{% url 'catalog:catalog-list' %}" class="back-link">← Вернуться в каталог</a>
+      
+      <div class="product-detail">
+        <div class="product-gallery">
+          <div class="main-image" id="mainImage">
+            {% if product.image %}
+              <img src="{{ product.image.url }}" alt="{{ product.name }}" id="mainImg" />
+            {% else %}
+              Фото продукта
+            {% endif %}
+          </div>
+          
+          {% if product.gallery_images.all %}
+            <div class="thumbnail-gallery">
+              <div class="thumbnail active" onclick="changeImage('{{ product.image.url }}', this)">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" />
+              </div>
+              {% for gallery_img in product.gallery_images.all %}
+                <div class="thumbnail" onclick="changeImage('{{ gallery_img.image.url }}', this)">
+                  <img src="{{ gallery_img.image.url }}" alt="{{ product.name }}" />
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="product-info">
+          <h2>{{ product.name }}</h2>
+          
+          <span class="product-category">{{ product.category.name }}</span>
+          
+          <div class="product-price">{{ product.price }} ₽</div>
+          
+          {% if product.advantages.all %}
+            <div class="product-section">
+              <h3>Преимущества</h3>
+              <ul class="advantages-list">
+                {% for advantage in product.advantages.all %}
+                  <li>{{ advantage.description }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Описание вынесено отдельным блоком -->
+      <div class="product-description-block">
+        <h3>Описание товара</h3>
+        <div class="product-description">
+          {{ product.description|safe }}
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="sakura-tree">
+        <picture>
+          <source type="image/webp" srcset="{% static 'footer.webp' %} 1x, {% static 'footer@2x.webp' %} 2x">
+          <source type="image/png" srcset="{% static 'footer.png' %} 1x, {% static 'footer@2x.png' %} 2x">
+          <img src="{% static 'footer.png' %}" srcset="{% static 'footer.png' %} 1x, {% static 'footer@2x.png' %} 2x" alt="Сакура — декоративное изображение" class="sakura-img" loading="lazy" width="200" height="200" />
+        </picture>
+      </div>
+      <p>© 2025 Каталог японской косметики. Все права защищены.</p>
+    </footer>
+
+    <script>
+      function changeSeason(season) {
+        document.body.className = season;
+        
+        const buttons = document.querySelectorAll('.season-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        createSeasonalEffect(season);
+        
+        const url = new URL(window.location);
+        url.searchParams.set('season', season);
+        window.history.pushState({}, '', url);
+      }
+      
+      function changeImage(src, element) {
+        document.getElementById('mainImg').src = src;
+        
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        thumbnails.forEach(thumb => thumb.classList.remove('active'));
+        element.classList.add('active');
+      }
+      
+      function createSeasonalEffect(season) {
+        const container = document.getElementById('seasonalBg');
+        container.innerHTML = '';
+        
+        const effects = {
+          winter: { char: '❄', count: 30, color: '#a5d8ff' },
+          spring: { char: '🌸', count: 25, color: '#ffc9c9' },
+          summer: { char: '', count: 15, color: '#ffe066' },
+          autumn: { char: '🍂', count: 35, color: '#ff922b' }
+        };
+        
+        const effect = effects[season];
+        if (!effect) return;
+        
+        for (let i = 0; i < effect.count; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          particle.textContent = effect.char;
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.fontSize = (Math.random() * 20 + 15) + 'px';
+          particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+          particle.style.animationDelay = Math.random() * 5 + 's';
+          particle.style.color = effect.color;
+          container.appendChild(particle);
+        }
+      }
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentSeason = urlParams.get('season') || 'winter';
+      document.body.className = currentSeason;
+      createSeasonalEffect(currentSeason);
+      
+      document.querySelectorAll('.season-btn').forEach(btn => {
+        if (btn.textContent.toLowerCase().includes(currentSeason === 'winter' ? 'зима' : 
+           currentSeason === 'spring' ? 'весна' : 
+           currentSeason === 'summer' ? 'лето' : 'осень')) {
+          btn.classList.add('active');
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Каталог японской косметики с сезонными темами" />
+    <!-- основной .ico (IE, старые браузеры) -->
+    <link rel="icon" href="{% static 'favicon/favicon.svg' %}" type="image/svg+xml" />
+    <link rel="alternate icon" href="{% static 'favicon/favicon.ico' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}" />
+
+    <title>Каталог японской косметики</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      :root {
+        --bg-primary: #fff;
+        --bg-secondary: #f8f9fa;
+        --text-primary: #2c3e50;
+        --text-secondary: #7f8c8d;
+        --border-color: #ecf0f1;
+        --accent: #3498db;
+      }
+      
+      body.winter {
+        --bg-primary: #f0f4f8;
+        --bg-secondary: #e1e8ed;
+        --text-primary: #1a365d;
+        --accent: #4299e1;
+      }
+      
+      body.spring {
+        --bg-primary: #fff5f7;
+        --bg-secondary: #ffe4e8;
+        --text-primary: #702459;
+        --accent: #d53f8c;
+      }
+      
+      body.summer {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f9fafb;
+        --text-primary: #1f2937;
+        --accent: #10b981;
+      }
+      
+      body.autumn {
+        --bg-primary: #fef6ee;
+        --bg-secondary: #fed7aa;
+        --text-primary: #7c2d12;
+        --accent: #ea580c;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        line-height: 1.6;
+        color: var(--text-primary);
+        background: var(--bg-primary);
+        transition: all 0.4s ease;
+        position: relative;
+        overflow-x: hidden;
+      }
+      
+      /* Анимированный фон */
+      .seasonal-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+      
+      .particle {
+        position: absolute;
+        opacity: 0.7;
+        animation: fall linear infinite;
+      }
+      
+      @keyframes fall {
+        to {
+          transform: translateY(100vh) rotate(360deg);
+        }
+      }
+      
+      @keyframes fall-leaf {
+        to {
+          transform: translateY(100vh) rotate(720deg) translateX(50px);
+        }
+      }
+      
+      header {
+        background: var(--bg-secondary);
+        padding: 2rem 1rem;
+        text-align: center;
+        border-bottom: 1px solid var(--border-color);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        transition: background 0.4s ease;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+        font-weight: 300;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+      }
+      
+      .season-selector {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+      }
+      
+      .season-btn {
+        padding: 0.5rem 1.2rem;
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        border-radius: 4px;
+      }
+      
+      .season-btn:hover,
+      .season-btn.active {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+      
+      nav {
+        padding: 1rem;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+        position: relative;
+        z-index: 50;
+      }
+      
+      .filter-toggle {
+        display: none;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        cursor: pointer;
+        font-size: 1rem;
+        text-align: left;
+        border-radius: 4px;
+        position: relative;
+        margin-bottom: 0.5rem;
+      }
+      
+      .filter-toggle::after {
+        content: '▼';
+        position: absolute;
+        right: 1rem;
+        transition: transform 0.3s;
+      }
+      
+      .filter-toggle.active::after {
+        transform: rotate(180deg);
+      }
+      
+      .categories {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      
+      .category-link {
+        color: var(--text-primary);
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-bottom: 2px solid transparent;
+        transition: border-color 0.3s;
+      }
+      
+      .category-link:hover {
+        border-bottom-color: var(--accent);
+      }
+      
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        position: relative;
+        z-index: 1;
+      }
+      
+      .products {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+      }
+      
+      .product {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        padding: 1.5rem;
+        transition: transform 0.3s, box-shadow 0.3s;
+        text-decoration: none;
+        color: var(--text-primary);
+        display: block;
+      }
+      
+      .product:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      
+      .product-image {
+        width: 100%;
+        height: 240px;
+        background: var(--bg-primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .product-image img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+        overflow: hidden;
+      }
+      
+      .product-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+      }
+      
+      .product-description {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+      }
+      
+      .product-price {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--accent);
+      }
+      
+      footer {
+        background: var(--bg-secondary);
+        padding: 1rem 1rem;
+        text-align: center;
+        margin-top: 3rem;
+        border-top: 1px solid var(--border-color);
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+      }
+      
+      .sakura-tree {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+        position: relative;
+      }
+      
+      .sakura-tree svg {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      }
+      
+      /* Адаптивное изображение футера */
+      .sakura-tree img.sakura-img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        object-fit: contain;
+      }
+      
+      footer p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+      
+      @media (max-width: 768px) {
+        .products {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.75rem;
+        }
+      
+        .product {
+          padding: 0.75rem;
+        }
+      
+        .product-image {
+          height: 140px;
+        }
+      
+        .product-title {
+          font-size: 0.92rem;
+          line-height: 1.1;
+          margin-bottom: 0.4rem;
+        }
+      
+        .product-description {
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+          margin-bottom: 0.75rem;
+          line-height: 1.3;
+          /* Limit description to 3 lines on mobile */
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      
+        .product-price {
+          font-size: 1rem;
+        }
+      
+        h1 {
+          font-size: 1.5rem;
+        }
+      
+        .filter-toggle {
+          display: block;
+        }
+      
+        .categories {
+          display: none;
+          flex-direction: column;
+          align-items: stretch;
+        }
+      
+        .categories.active {
+          display: flex;
+        }
+      
+        .category-link {
+          padding: 0.75rem 1rem;
+          border: 1px solid var(--border-color);
+          border-radius: 4px;
+          background: var(--bg-primary);
+        }
+      
+        .sakura-tree {
+          width: 150px;
+          height: 150px;
+        }
+      }
+    </style>
+  </head>
+  <body class="{{ request.GET.season|default:'spring' }}">
+    <div class="seasonal-bg" id="seasonalBg"></div>
+
+    <header>
+      <h1>Каталог японской косметики</h1>
+      <div class="season-selector">
+        <button class="season-btn" onclick="changeSeason('winter')">Зима</button>
+        <button class="season-btn" onclick="changeSeason('spring')">Весна</button>
+        <button class="season-btn" onclick="changeSeason('summer')">Лето</button>
+        <button class="season-btn" onclick="changeSeason('autumn')">Осень</button>
+      </div>
+    </header>
+
+    <nav>
+      
+
+      {% block title %}
+        Каталог японской косметики
+      {% endblock %}
+
+      {% block content %}
+        <div class="products">
+          {% for product in products %}
+            <a href="{% url 'catalog:product-detail' slug=product.slug %}" class="product">
+              <div class="product-image">
+                {% if product.image and product.image.url %}
+                  <img src="{{ product.image.url }}" alt="{{ product.name }}" style="max-width:100%; max-height:100%; object-fit:contain;" />
+                {% else %}
+                  Фото продукта
+                {% endif %}
+              </div>
+              <h3 class="product-title">{{ product.name }}</h3>
+              <p class="product-description">{{ product.description|truncatechars:120|safe }}</p>
+              <div class="product-price">{{ product.price }} ₽</div>
+            </a>
+          {% empty %}
+            <p>Товары не найдены.</p>
+          {% endfor %}
+        </div>
+
+        {% if is_paginated %}
+          <nav class="pagination" aria-label="Страницы">
+            <ul style="display:flex; gap:8px; list-style:none; justify-content:center; padding:1rem 0;">
+              {% if page_obj.has_previous %}
+                <li>
+                  <a class="season-btn"
+                    href="{% if current_category %}
+                      {% url 'catalog:catalog-list' %}
+                      ?category={{ current_category }}&page={{ page_obj.previous_page_number }}
+                    {% else %}
+                      {% url 'catalog:catalog-list' %}
+                      ?page={{ page_obj.previous_page_number }}
+                    {% endif %}">
+                    « Назад
+                  </a>
+                </li>
+              {% endif %}
+
+              {% for p in paginator.page_range %}
+                {% if p >= page_obj.number|add:'-2' and p <= page_obj.number|add:'2' %}
+                  {% if p == page_obj.number %}
+                    <li>
+                      <strong style="padding:0.5rem 0.75rem; border-radius:4px; background:var(--accent); color:#fff;">{{ p }}</strong>
+                    </li>
+                  {% else %}
+                    <li>
+                      <a class="season-btn"
+                        href="{% if current_category %}
+                          {% url 'catalog:catalog-list' %}
+                          ?category={{ current_category }}&page={{ p }}
+                        {% else %}
+                          {% url 'catalog:catalog-list' %}
+                          ?page={{ p }}
+                        {% endif %}">
+                        {{ p }}
+                      </a>
+                    </li>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+                <li>
+                  <a class="season-btn"
+                    href="{% if current_category %}
+                      {% url 'catalog:catalog-list' %}
+                      ?category={{ current_category }}&page={{ page_obj.next_page_number }}
+                    {% else %}
+                      {% url 'catalog:catalog-list' %}
+                      ?page={{ page_obj.next_page_number }}
+                    {% endif %}">
+                    Вперед »
+                  </a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+        {% endif %}
+      {% endblock %}
+    </nav>
+  </body>
+</html>
