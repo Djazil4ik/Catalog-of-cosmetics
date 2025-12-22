@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, ListView, RedirectView
 
-from .models import Category, Product
+from .models import Category, Product, ContactInfo
 
 
 class HomeRedirectView(RedirectView):
@@ -31,7 +31,6 @@ class CatalogListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.all()
         context['current_category'] = self.request.GET.get(
             'category') or self.kwargs.get('category_slug')
         return context
@@ -55,7 +54,5 @@ class ProductDetailView(DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.all()
-        context['current_category'] = self.request.GET.get(
-            'category') or self.kwargs.get('category_slug')
+        context['current_category'] = self.request.GET.get('category') or self.kwargs.get('category_slug')
         return context

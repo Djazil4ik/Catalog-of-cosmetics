@@ -1,113 +1,208 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Каталог японской косметики с сезонными темами" />
-    <!-- основной .ico (IE, старые браузеры) -->
-    <link rel="shortcut icon" href="{% static 'favicon/favicon.ico' %}" width="1024" height="1024" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>{% block title %}Каталог{% endblock %}</title>
-    {% block extra_head %}{% endblock %}
+    <!-- Favicons -->
+    <link rel="shortcut icon" href="{% static 'favicon/favicon.ico' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32.png' %}">
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'favicon/favicon-48.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/favicon-180.png' %}">
     <style>
-      /* Вынесенные стили — общий CSS для страниц каталога */
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      :root { --bg-primary: #fff; --bg-secondary: #f8f9fa; --text-primary: #2c3e50; --text-secondary: #7f8c8d; --border-color: #ecf0f1; --accent: #3498db; }
-      body.winter { --bg-primary: #f0f4f8; --bg-secondary: #e1e8ed; --text-primary: #1a365d; --accent: #4299e1; }
-      body.spring { --bg-primary: #fff5f7; --bg-secondary: #ffe4e8; --text-primary: #702459; --accent: #d53f8c; }
-      body.summer { --bg-primary: #ffffff; --bg-secondary: #f9fafb; --text-primary: #1f2937; --accent: #10b981; }
-      body.autumn { --bg-primary: #fef6ee; --bg-secondary: #fed7aa; --text-primary: #7c2d12; --accent: #ea580c; }
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; line-height: 1.6; color: var(--text-primary); background: var(--bg-primary); transition: all 0.4s ease; position: relative; overflow-x: hidden; }
-      .seasonal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
-      .particle { position: absolute; opacity: 0.7; animation: fall linear infinite; }
-      @keyframes fall { to { transform: translateY(100vh) rotate(360deg); } }
-      @keyframes fall-leaf { to { transform: translateY(100vh) rotate(720deg) translateX(50px); } }
-      header { background: var(--bg-secondary); padding: 2rem 1rem; text-align: center; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; transition: background 0.4s ease; }
-      h1 { font-size: 1.8rem; font-weight: 300; margin-bottom: 1rem; position: relative; z-index: 1; }
-      .season-selector { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
-      .season-btn { padding: 0.5rem 1.2rem; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); cursor: pointer; font-size: 0.9rem; transition: all 0.3s; text-decoration: none; border-radius: 4px; }
-      .season-btn:hover, .season-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-      nav { padding: 1rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); position: relative; z-index: 50; }
-      .filter-toggle { display: none; width: 100%; padding: 0.75rem 1rem; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; font-size: 1rem; text-align: left; border-radius: 4px; position: relative; margin-bottom: 0.5rem; }
-      .filter-toggle::after { content: '▼'; position: absolute; right: 1rem; transition: transform 0.3s; }
-      .filter-toggle.active::after { transform: rotate(180deg); }
-      .categories { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; }
-      .category-link { color: var(--text-primary); text-decoration: none; padding: 0.5rem 1rem; border-bottom: 2px solid transparent; transition: border-color 0.3s; }
-      .category-link:hover { border-bottom-color: var(--accent); }
-      .category-link.active { border-bottom-color: var(--accent); font-weight: 600; }
-      main { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; position: relative; z-index: 1; }
-      .products { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; }
-      .product { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 1.5rem; transition: transform 0.3s, box-shadow 0.3s; text-decoration: none; color: var(--text-primary); display: block; }
-      .product:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-      .product-image { width: 100%; height: auto; background: var(--bg-primary); margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 0.85rem; }
-      .product-title { font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 500; }
-      .product-description { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; }
-      .product-price { font-size: 1.3rem; font-weight: 600; color: var(--accent); }
-      footer { background: var(--bg-secondary); padding: 3rem 1rem; text-align: center; margin-top: 3rem; border-top: 1px solid var(--border-color); position: relative; z-index: 1; overflow: hidden; }
-      .sakura-tree { width: 200px; height: 200px; margin: 0 auto 1rem; position: relative; }
-      .sakura-tree img.sakura-img { display: block; max-width: 100%; height: auto; margin: 0 auto; object-fit: contain; }
-      @media (max-width: 768px) {
-        .products { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
-        .product { padding: 0.75rem; }
-        .product-image { height: 140px; }
-        .product-title { font-size: 0.92rem; line-height: 1.1; margin-bottom: 0.4rem; }
-        .product-description { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .product-price { font-size: 1rem; }
-        .filter-toggle { display: block; }
-        .categories { display: none; flex-direction: column; align-items: stretch; }
-        .categories.active { display: flex; }
-        .category-link { padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); }
-        .sakura-tree { width: 150px; height: 150px; }
-      }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: #E8DDD3;
+            color: #2c2c2c;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar */
+        nav {
+            background-color: #D4C4B8;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        @font-face {
+            font-family: 'Voire Display ExtraLight';
+            src: url('{% static "fonts/Voire Display ExtraLight.ttf" %}') format('ttf');
+            font-weight: 100;
+            font-display: swap;
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-family: 'Voire Display ExtraLight', serif;
+            font-size: 2.2rem;
+            font-weight: 100;
+            letter-spacing: 8px;
+            color: #fff;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: #5a4a42;
+            text-decoration: none;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #2c2c2c;
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(to bottom, #E8DDD3 0%, #F5EDE5 100%);
+            padding: 4rem 2rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .sakura-container {
+            position: relative;
+            bottom: 10px;
+            left: 50%;
+            width: 200px;
+            height: 170px;
+            transform: translateX(-50%);
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .sakura-branch {
+            width: 100%;
+            height: 100%;
+            background-image: url('{% static 'sakura.png' %}');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+        }
+
+        .footer-text {
+            font-family: 'Voire Display ExtraLight', serif;
+            font-size: 0.9rem;
+            color: #8a7a72;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .footer-copyright {
+            font-family: 'Voire Display ExtraLight', serif;
+            font-size: 0.9rem;
+            color: #a09088;
+            letter-spacing: 1px;
+        }
+
+        .footer-contacts {
+            margin-bottom: 2rem;
+        }
+
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .contact-link {
+            color: #8a7a72;
+            text-decoration: none;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .contact-link:hover {
+            color: #5a4a42;
+        }
     </style>
-  </head>
-  <body class="{{ request.GET.season|default:'spring' }}">
-    <div class="seasonal-bg" id="seasonalBg"></div>
-
-    <header>
-      <h1>Каталог японской косметики</h1>
-      <div class="season-selector">
-        <button class="season-btn" onclick="changeSeason('winter')">Зима</button>
-        <button class="season-btn" onclick="changeSeason('spring')">Весна</button>
-        <button class="season-btn" onclick="changeSeason('summer')">Лето</button>
-        <button class="season-btn" onclick="changeSeason('autumn')">Осень</button>
-      </div>
-    </header>
-
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
     <nav>
-      <button class="filter-toggle" onclick="toggleCategories()">Категории товаров</button>
-      <div class="categories">
-        <a href="{% url 'catalog:catalog-list' %}" class="category-link{% if not current_category %} active{% endif %}">Все</a>
-        {% for cat in categories %}
-          <a href="{% url 'catalog:catalog-list' %}?category={{ cat.slug }}" class="category-link{% if cat.slug == current_category %} active{% endif %}">{{ cat.name }}</a>
-        {% endfor %}
-      </div>
+        <div class="nav-container">
+            <a href="{% url 'catalog:catalog_list' %}" class="logo">BRANDING</a>
+            <ul class="nav-links">
+                <li><a href="{% url 'catalog:catalog_list' %}">Все товары</a></li>
+                {% for category in categories %}
+                <li><a href="{% url 'catalog:catalog_list' %}?category={{ category.slug }}">{{ category.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
     </nav>
 
     <main>
-      {% block content %}{% endblock %}
+        {% block content %}{% endblock %}
     </main>
 
     <footer>
-      <div class="sakura-tree">
-        <picture>
-          <source type="image/webp" srcset="{% static 'footer.webp' %} 1x, {% static 'footer@2x.webp' %} 2x">
-          <source type="image/png" srcset="{% static 'footer.png' %} 1x, {% static 'footer@2x.png' %} 2x">
-          <img src="{% static 'footer.png' %}" srcset="{% static 'footer.png' %} 1x, {% static 'footer@2x.png' %} 2x" alt="Сакура — декоративное изображение" class="sakura-img" loading="lazy" width="200" height="200" />
-        </picture>
-      </div>
-      <p>© 2025 Каталог японской косметики. Все права защищены.</p>
+        <div class="sakura-container">
+            <div class="sakura-branch"></div>
+        </div>
+        <div class="footer-content">
+            {% if contact_info %}
+            <div class="footer-contacts">
+                <p class="footer-text">СВЯЖИТЕСЬ С НАМИ</p>
+                <div class="contact-links">
+                    <a href="tel:{{ contact_info.phone_number }}" class="contact-link">📞 {{ contact_info.phone_number }}</a>
+                    <a href="https://wa.me/{{ contact_info.whatsapp_number|cut:'+' }}" class="contact-link" target="_blank">💬 WhatsApp</a>
+                    <a href="mailto:{{ contact_info.email }}" class="contact-link">✉️ {{ contact_info.email }}</a>
+                </div>
+            </div>
+            {% endif %}
+            <p class="footer-copyright">© 2025 Все Права Защищены</p>
+        </div>
     </footer>
 
-    {% block extra_scripts %}
-    <script>
-      let currentSeason = 'spring'
-      function toggleCategories(){const categories=document.querySelector('.categories');const toggle=document.querySelector('.filter-toggle');categories.classList.toggle('active');toggle.classList.toggle('active')}
-      function createParticles(type,count){const container=document.getElementById('seasonalBg');container.innerHTML='';for(let i=0;i<count;i++){const particle=document.createElement('div');particle.className='particle';particle.style.left=Math.random()*100+'%';particle.style.animationDuration=Math.random()*5+5+'s';particle.style.animationDelay=Math.random()*5+'s';if(type==='snowflake'){particle.innerHTML='❄';particle.style.fontSize=Math.random()*15+15+'px';particle.style.color='#a8d5f2'}else if(type==='sakura'){particle.innerHTML='🌸';particle.style.fontSize=Math.random()*20+15+'px';particle.style.animationName='fall-leaf'}else if(type==='leaf'){const leaves=['🍂','🍁'];particle.innerHTML=leaves[Math.floor(Math.random()*leaves.length)];particle.style.fontSize=Math.random()*20+15+'px';particle.style.animationName='fall-leaf'}container.appendChild(particle)}}
-      function changeSeason(season){currentSeason=season;document.body.className=season;document.querySelectorAll('.season-btn').forEach((btn)=>{btn.classList.remove('active')});event?.target?.classList.add('active');if(season==='winter'){createParticles('snowflake',30)}else if(season==='spring'){createParticles('sakura',25)}else if(season==='summer'){createParticles('',0)}else if(season==='autumn'){createParticles('leaf',25)}}
-      function getCurrentSeason(){const month=new Date().getMonth()+1; if(month>=3&&month<=5) return 'spring'; if(month>=6&&month<=8) return 'summer'; if(month>=9&&month<=11) return 'autumn'; return 'winter'}
-      window.addEventListener('DOMContentLoaded',()=>{const season=getCurrentSeason();currentSeason=season;document.body.className=season;const seasonIndex={winter:0,spring:1,summer:2,autumn:3};const buttons=document.querySelectorAll('.season-btn');buttons[seasonIndex[season]]?.classList.add('active');if(season==='winter'){createParticles('snowflake',30)}else if(season==='spring'){createParticles('sakura',25)}else if(season==='autumn'){createParticles('leaf',25)}})
-    </script>
-    {% endblock %}
-  </body>
+    {% block extra_js %}{% endblock %}
+</body>
 </html>

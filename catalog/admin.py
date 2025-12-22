@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Advantage, Category, ImageGallery, Product
+from .models import Advantage, Category, ImageGallery, Product, ContactInfo
 
 
 class ImageGalleryInline(admin.TabularInline):
@@ -108,3 +108,33 @@ class ProductAdmin(admin.ModelAdmin):
         return f'{count} фото'
 
     gallery_count.short_description = 'Изображений в галерее'
+
+
+@admin.register(ContactInfo)
+class ContactInfoAdmin(admin.ModelAdmin):
+    list_display = ('phone_number', 'whatsapp_number', 'email')
+    search_fields = ('phone_number', 'whatsapp_number', 'email')
+    ordering = ('phone_number',)
+    fieldsets = (
+        (None, {
+            'fields': ('phone_number', 'whatsapp_number', 'email')
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        """Автоматически очищает номер WhatsApp от лишних символов."""
+        if obj.whatsapp_number:
+            # Оставляем только цифры и +
+            obj.whatsapp_number = ''.join(
+                c for c in obj.whatsapp_number if c.isdigit() or c == '+')
+        super().save_model(request, obj, form, change)
+
+    def has_add_permission(self, request):
+        """Ограничивает добавление новых записей, разрешая только одну запись."""
+        if ContactInfo.objects.exists():
+            return False
+        return super().has_add_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        """Запрещает удаление записей."""
+        return False
