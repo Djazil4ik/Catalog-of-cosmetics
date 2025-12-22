@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, ListView, RedirectView
 
-from .models import Category, Product, ContactInfo
+from .models import Product
 
 
 class HomeRedirectView(RedirectView):
