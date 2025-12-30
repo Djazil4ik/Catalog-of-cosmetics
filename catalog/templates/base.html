@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>{% block title %}Каталог{% endblock %}</title>
-    <!-- Favicons -->
-    <link rel="shortcut icon" href="{% static 'favicon/favicon.ico' %}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32.png' %}">
-    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'favicon/favicon-48.png' %}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/favicon-180.png' %}">
     <style>
         * {
             margin: 0;
@@ -33,12 +27,7 @@
             padding: 1.5rem 2rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        @font-face {
-            font-family: 'Voire Display ExtraLight';
-            src: url('{% static "fonts/Voire Display ExtraLight.ttf" %}') format('ttf');
-            font-weight: 100;
-            font-display: swap;
-        }
+
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -49,9 +38,8 @@
         }
 
         .logo {
-            font-family: 'Voire Display ExtraLight', serif;
-            font-size: 2.2rem;
-            font-weight: 100;
+            font-size: 1.8rem;
+            font-weight: 300;
             letter-spacing: 8px;
             color: #fff;
             text-decoration: none;
@@ -77,6 +65,77 @@
             color: #2c2c2c;
         }
 
+        /* Mobile menu */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #5a4a42;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .nav-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #D4C4B8;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .nav-dropdown.active {
+            display: block;
+        }
+
+        .nav-dropdown ul {
+            list-style: none;
+            padding: 1rem;
+            margin: 0;
+        }
+
+        .nav-dropdown li {
+            margin: 0;
+        }
+
+        .nav-dropdown a {
+            display: block;
+            padding: 1rem;
+            color: #5a4a42;
+            text-decoration: none;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            transition: background 0.3s;
+            border-radius: 4px;
+        }
+
+        .nav-dropdown a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem 1.5rem;
+                position: relative;
+            }
+
+            .logo {
+                font-size: 1.3rem;
+                letter-spacing: 4px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+        }
+
         /* Main Content */
         main {
             flex: 1;
@@ -100,42 +159,6 @@
             text-align: center;
             position: relative;
             z-index: 2;
-        }
-
-        .sakura-container {
-            position: relative;
-            bottom: 10px;
-            left: 50%;
-            width: 200px;
-            height: 170px;
-            transform: translateX(-50%);
-            opacity: 0.8;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .sakura-branch {
-            width: 100%;
-            height: 100%;
-            background-image: url('{% static 'sakura.png' %}');
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-        }
-
-        .footer-text {
-            font-family: 'Voire Display ExtraLight', serif;
-            font-size: 0.9rem;
-            color: #8a7a72;
-            letter-spacing: 2px;
-            margin-bottom: 1rem;
-        }
-
-        .footer-copyright {
-            font-family: 'Voire Display ExtraLight', serif;
-            font-size: 0.9rem;
-            color: #a09088;
-            letter-spacing: 1px;
         }
 
         .footer-contacts {
@@ -164,6 +187,40 @@
         .contact-link:hover {
             color: #5a4a42;
         }
+
+        .sakura-container {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 400px;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .sakura-branch {
+            width: 100%;
+            height: 100%;
+            background-image: url('{% static 'sakura.png' %}');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+        }
+
+        .footer-text {
+            font-size: 0.9rem;
+            color: #8a7a72;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .footer-copyright {
+            font-size: 0.8rem;
+            color: #a09088;
+            letter-spacing: 1px;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -171,10 +228,24 @@
     <nav>
         <div class="nav-container">
             <a href="{% url 'catalog:catalog_list' %}" class="logo">BRANDING</a>
+            
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Меню">
+                ☰
+            </button>
+
             <ul class="nav-links">
                 <li><a href="{% url 'catalog:catalog_list' %}">Все товары</a></li>
                 {% for category in categories %}
                 <li><a href="{% url 'catalog:catalog_list' %}?category={{ category.slug }}">{{ category.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="nav-dropdown" id="mobileMenu">
+            <ul>
+                <li><a href="{% url 'catalog:catalog_list' %}" onclick="toggleMobileMenu()">Все товары</a></li>
+                {% for category in categories %}
+                <li><a href="{% url 'catalog:catalog_list' %}?category={{ category.slug }}" onclick="toggleMobileMenu()">{{ category.name }}</a></li>
                 {% endfor %}
             </ul>
         </div>
@@ -183,6 +254,7 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+
 
     <footer>
         <div class="sakura-container">
@@ -204,5 +276,24 @@
     </footer>
 
     {% block extra_js %}{% endblock %}
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('active');
+        }
+
+        // Закрытие меню при клике вне его
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('mobileMenu');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            const nav = document.querySelector('nav');
+            
+            if (menu && menu.classList.contains('active') && 
+                !nav.contains(event.target)) {
+                menu.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>
