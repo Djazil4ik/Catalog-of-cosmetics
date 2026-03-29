@@ -199,9 +199,6 @@ docker-compose exec web python manage.py createsuperuser
 
 Djazil / mustafaevdjaz@gmail.com
 
-## 📄 Лицензия
-
-MIT License
 
 ---
 
