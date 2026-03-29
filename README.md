@@ -98,7 +98,7 @@ docker-compose exec web python manage.py migrate
 docker-compose exec web python manage.py createsuperuser
 ```
 
-Сайт будет доступен на порту 80.
+Сайт будет доступен на localhost:8080.
 
 ## 📁 Структура проекта
 
